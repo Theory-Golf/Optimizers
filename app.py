@@ -144,6 +144,16 @@ st.markdown("""
         color: #F4EFE2;
     }
     
+    /* Sidebar selectbox - White background */
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
+        background-color: white !important;
+        color: #2E2E2E !important;
+        border: 1px solid white !important;
+    }
+    [data-testid="stSidebar"] .stSelectbox label {
+        color: #F4EFE2 !important;
+    }
+    
     /* Buttons - Heritage Green */
     .stButton>button {
         background-color: #2D5016;
