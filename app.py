@@ -502,18 +502,16 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
         status_color = "#B4413D"  # Weakness Red
         status_text = "⬆ Above"
     
-    # Create chart HTML
+    # Create chart HTML (without comments to avoid escaping issues)
     chart_html = f"""
     <div style="padding: 15px; background-color: white; border-radius: 8px; margin: 10px 0;">
         <div style="text-align: center; margin-bottom: 10px;">
             <strong style="color: #32174D; font-size: 16px;">{metric_name}</strong>
         </div>
         
-        <!-- Chart visualization -->
         <div style="position: relative; height: 80px; background-color: #F5F5F5; 
                     border-radius: 4px; border: 1px solid #2E2E2E;">
             
-            <!-- Optimal range band -->
             <div style="position: absolute; left: {optimal_start}%; 
                         width: {optimal_end - optimal_start}%; top: 0; 
                         height: 100%; background-color: rgba(46, 80, 22, 0.25);
@@ -525,7 +523,6 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
                 </div>
             </div>
             
-            <!-- User value indicator -->
             <div style="position: absolute; left: {user_position}%; top: 50%;
                         transform: translate(-50%, -50%); z-index: 10;">
                 <div style="width: 4px; height: 60px; background-color: {status_color};
@@ -536,7 +533,6 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
                             margin: 0 auto;"></div>
             </div>
             
-            <!-- User value label above indicator -->
             <div style="position: absolute; left: {user_position}%; 
                         top: 5px; transform: translateX(-50%); z-index: 15;">
                 <div style="background-color: {status_color}; color: white; 
@@ -547,7 +543,6 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
             </div>
         </div>
         
-        <!-- Status -->
         <div style="text-align: center; margin-top: 8px;">
             <span style="color: {status_color}; font-weight: bold; font-size: 14px;">
                 {status_text}
