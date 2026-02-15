@@ -14,6 +14,7 @@ Color Palette:
 
 import streamlit as st
 import pandas as pd
+from typing import Optional
 
 # ============================================================================
 # CONFIGURATION & CONSTANTS
@@ -468,6 +469,162 @@ def display_optimal_ranges(club: str):
         </div>
         """, unsafe_allow_html=True)
 
+
+def create_metric_chart(metric_name: str, user_value: float, optimal_range: tuple, 
+                       unit: str, max_value: Optional[float] = None) -> str:
+    """
+    Create a vertical bar chart showing optimal range and user value.
+    
+    Returns HTML string for the chart.
+    """
+    low, high = optimal_range
+    
+    # Calculate chart boundaries
+    if max_value is None:
+        if high > 100:
+            max_value = high * 1.3
+        else:
+            max_value = high * 1.2
+    
+    # Calculate positions (normalized to 0-100)
+    optimal_start = (low / max_value) * 100
+    optimal_end = (high / max_value) * 100
+    user_position = (user_value / max_value) * 100
+    
+    # Determine status and colors
+    if low <= user_value <= high:
+        status_color = "#3FA066"  # Success Green
+        status_text = "✓ Optimal"
+    elif user_value < low:
+        status_color = "#B4413D"  # Weakness Red
+        status_text = "⬇ Below"
+    else:
+        status_color = "#B4413D"  # Weakness Red
+        status_text = "⬆ Above"
+    
+    # Create chart HTML
+    chart_html = f"""
+    <div style="padding: 15px; background-color: white; border-radius: 8px; margin: 10px 0;">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <strong style="color: #32174D; font-size: 16px;">{metric_name}</strong>
+        </div>
+        
+        <!-- Chart visualization -->
+        <div style="position: relative; height: 80px; background-color: #F5F5F5; 
+                    border-radius: 4px; border: 1px solid #2E2E2E;">
+            
+            <!-- Optimal range band -->
+            <div style="position: absolute; left: {optimal_start}%; 
+                        width: {optimal_end - optimal_start}%; top: 0; 
+                        height: 100%; background-color: rgba(46, 80, 22, 0.25);
+                        border-left: 2px solid #2D5016; border-right: 2px solid #2D5016;">
+                <div style="position: absolute; bottom: 2px; left: 50%; 
+                            transform: translateX(-50%); font-size: 9px; 
+                            color: #2D5016; white-space: nowrap;">
+                    Optimal: {low}-{high}{unit}
+                </div>
+            </div>
+            
+            <!-- User value indicator -->
+            <div style="position: absolute; left: {user_position}%; top: 50%;
+                        transform: translate(-50%, -50%); z-index: 10;">
+                <div style="width: 4px; height: 60px; background-color: {status_color};
+                            border-radius: 2px; margin: 0 auto;"></div>
+                <div style="width: 0; height: 0; border-left: 8px solid transparent;
+                            border-right: 8px solid transparent;
+                            border-top: 10px solid {status_color};
+                            margin: 0 auto;"></div>
+            </div>
+            
+            <!-- User value label above indicator -->
+            <div style="position: absolute; left: {user_position}%; 
+                        top: 5px; transform: translateX(-50%); z-index: 15;">
+                <div style="background-color: {status_color}; color: white; 
+                            padding: 2px 8px; border-radius: 4px; 
+                            font-size: 12px; font-weight: bold; white-space: nowrap;">
+                    You: {user_value:.1f}{unit}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status -->
+        <div style="text-align: center; margin-top: 8px;">
+            <span style="color: {status_color}; font-weight: bold; font-size: 14px;">
+                {status_text}
+            </span>
+        </div>
+    </div>
+    """
+    return chart_html
+
+
+def display_shot_comparison_charts(metrics: dict, optimal: dict):
+    """Display vertical bar charts for all metrics."""
+    st.markdown("### 📊 Your Shot vs Optimal")
+    
+    # Create columns for charts
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Ball Speed
+        st.markdown(create_metric_chart(
+            "Ball Speed",
+            metrics['ball_speed'],
+            optimal['ball_speed'],
+            " mph",
+            max_value=optimal['ball_speed'][1] * 1.4
+        ), unsafe_allow_html=True)
+        
+        # Launch Angle
+        st.markdown(create_metric_chart(
+            "Launch Angle",
+            metrics['launch_angle'],
+            optimal['launch_angle'],
+            "°",
+            max_value=optimal['launch_angle'][1] * 1.3
+        ), unsafe_allow_html=True)
+        
+        # Smash Factor
+        st.markdown(create_metric_chart(
+            "Smash Factor",
+            metrics['smash_factor'],
+            optimal['smash_factor'],
+            "",
+            max_value=optimal['smash_factor'][1] * 1.15
+        ), unsafe_allow_html=True)
+    
+    with col2:
+        # Spin Rate
+        st.markdown(create_metric_chart(
+            "Spin Rate",
+            metrics['spin_rate'],
+            optimal['spin_rate'],
+            " RPM",
+            max_value=optimal['spin_rate'][1] * 1.3
+        ), unsafe_allow_html=True)
+        
+        # Carry Distance
+        st.markdown(create_metric_chart(
+            "Carry Distance",
+            metrics['carry_distance'],
+            optimal['carry_distance'],
+            " yds",
+            max_value=optimal['carry_distance'][1] * 1.3
+        ), unsafe_allow_html=True)
+    
+    # Legend
+    st.markdown("""
+    <div style="padding: 10px; background-color: #F5F5F5; border-radius: 8px; margin-top: 15px;">
+        <strong style="color: #32174D;">Legend:</strong>
+        <span style="color: #2E2E2E; margin-left: 15px;">
+            <span style="background-color: rgba(46, 80, 22, 0.3); padding: 2px 8px; 
+                        border-radius: 4px;">Optimal Range</span>
+            <span style="color: #3FA066; font-weight: bold; margin-left: 15px;">✓ Optimal</span>
+            <span style="color: #B4413D; font-weight: bold; margin-left: 15px;">⬇/⬆ Above/Below</span>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ============================================================================
 # MAIN APPLICATION
 # ============================================================================
@@ -603,40 +760,9 @@ def main():
     # Display optimal ranges
     display_optimal_ranges(selected_club)
     
-    # Current metrics comparison
-    st.markdown("#### Your Shot vs Optimal")
-    
+    # Current metrics comparison with charts
     optimal = OPTIMAL_RANGES[selected_club]
-    
-    # Create comparison dataframe
-    comparison_data = {
-        "Metric": ["Ball Speed (mph)", "Launch Angle (°)", "Spin Rate (RPM)", 
-                   "Smash Factor", "Carry Distance (yds)"],
-        "Your Value": [
-            metrics['ball_speed'],
-            metrics['launch_angle'],
-            metrics['spin_rate'],
-            metrics['smash_factor'],
-            metrics['carry_distance']
-        ],
-        "Optimal Range": [
-            f"{optimal['ball_speed'][0]}-{optimal['ball_speed'][1]}",
-            f"{optimal['launch_angle'][0]}-{optimal['launch_angle'][1]}",
-            f"{optimal['spin_rate'][0]}-{optimal['spin_rate'][1]}",
-            f"{optimal['smash_factor'][0]}-{optimal['smash_factor'][1]}",
-            f"{optimal['carry_distance'][0]}-{optimal['carry_distance'][1]}"
-        ],
-        "Status": [
-            check_metric_status(metrics['ball_speed'], optimal['ball_speed'], "")['icon'],
-            check_metric_status(metrics['launch_angle'], optimal['launch_angle'], "")['icon'],
-            check_metric_status(metrics['spin_rate'], optimal['spin_rate'], "")['icon'],
-            check_metric_status(metrics['smash_factor'], optimal['smash_factor'], "")['icon'],
-            check_metric_status(metrics['carry_distance'], optimal['carry_distance'], "")['icon']
-        ]
-    }
-    
-    df = pd.DataFrame(comparison_data)
-    st.table(df)
+    display_shot_comparison_charts(metrics, optimal)
     
     # Calculate overall optimization score
     total_checks = 5
