@@ -116,152 +116,173 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for improved readability
+# Custom CSS - Tracker Design System
 st.markdown("""
 <style>
-    /* Main background - very light gray */
+    /* Reset & Base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1a1a1a;
+        background: #f5f5f5;
+        line-height: 1.6;
+    }
+    
+    /* Main background */
     .stApp {
-        background-color: #F5F5F5;
+        background-color: #f5f5f5;
     }
     
-    /* Headers - Deep Plum */
+    /* Headers */
     h1, h2, h3, h4 {
-        color: #32174D;
+        color: #1b5e20;
+        font-weight: 600;
     }
     
-    /* Body text - Charcoal */
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    h3 { font-size: 1.15rem; margin-bottom: 0.25rem; }
+    h4 { font-size: 1rem; }
+    
+    /* Body text */
     .stMarkdown, .stText, p, div, span {
-        color: #2E2E2E;
+        color: #1a1a1a;
     }
     
-    /* Sidebar - Charcoal */
+    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #2E2E2E;
+        background-color: #1b5e20;
     }
     [data-testid="stSidebar"] h1, 
     [data-testid="stSidebar"] h2, 
     [data-testid="stSidebar"] h3, 
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] .stMarkdown {
-        color: #F4EFE2;
+        color: #fff;
     }
     
-    /* Sidebar selectbox - White background */
+    /* Sidebar selectbox */
     [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {
         background-color: white !important;
-        color: #2E2E2E !important;
-        border: 1px solid white !important;
+        color: #1a1a1a !important;
+        border: 1px solid #ccc !important;
+        border-radius: 6px !important;
     }
     [data-testid="stSidebar"] .stSelectbox label {
-        color: #F4EFE2 !important;
+        color: #fff !important;
+        font-weight: 600;
     }
     
-    /* Buttons - Heritage Green */
+    /* Primary Button - Green */
     .stButton>button {
-        background-color: #2D5016;
-        color: #F4EFE2;
+        background-color: #2e7d32;
+        color: #fff;
         border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 0.6rem 1rem;
+        transition: background 0.15s;
     }
     .stButton>button:hover {
-        background-color: #C6A75E;
-        color: #32174D;
+        background-color: #1b5e20;
     }
     
-    /* Input fields - White background with charcoal text */
+    /* Form inputs */
     .stNumberInput input, 
     .stTextInput input,
     .stSelectbox div[data-baseweb="select"] > div {
         background-color: white !important;
-        color: #2E2E2E !important;
-        border: 1px solid #2E2E2E !important;
+        color: #1a1a1a !important;
+        border: 1px solid #ccc !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 0.65rem !important;
+        font-size: 0.95rem !important;
     }
     
-    /* Input labels - Deep Plum */
+    /* Input labels */
     .stNumberInput label, 
     .stTextInput label, 
     .stSelectbox label {
-        color: #32174D !important;
-        font-weight: bold;
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
     }
     
     /* Success metrics */
     .metric-success {
-        color: #3FA066;
-        font-weight: bold;
+        color: #2e7d32;
+        font-weight: 600;
     }
     
     /* Weakness metrics */
     .metric-weakness {
-        color: #B4413D;
-        font-weight: bold;
+        color: #c62828;
+        font-weight: 600;
     }
     
-    /* Metric cards - Deep Plum */
-    .metric-card {
-        background-color: #32174D;
-        color: #F4EFE2;
-        padding: 15px;
+    /* Form-style container cards */
+    .tracker-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: #fff;
+        padding: 1.25rem;
         border-radius: 10px;
-        margin: 5px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
     }
     
     /* Recommendation cards */
     .recommendation-card {
-        background-color: #32174D;
-        color: #F4EFE2;
-        padding: 15px;
+        background-color: #fff;
+        color: #1a1a1a;
+        padding: 1rem 1.25rem;
         border-radius: 8px;
-        margin: 10px 0;
-        border-left: 4px solid #C6A75E;
+        margin: 0.75rem 0;
+        border-left: 4px solid #2e7d32;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .recommendation-card h4 {
+        color: #1b5e20;
+        margin-bottom: 0.5rem;
+    }
+    .recommendation-card ul {
+        margin: 0.5rem 0 0 1.25rem;
+        padding: 0;
+    }
+    .recommendation-card li {
+        margin: 0.35rem 0;
     }
     
-    /* Info boxes - Heritage Green */
+    /* Info boxes */
     .info-box {
-        background-color: #2D5016;
-        color: #F4EFE2;
-        padding: 15px;
+        background-color: #1b5e20;
+        color: #fff;
+        padding: 1rem 1.25rem;
         border-radius: 8px;
-        margin: 10px 0;
+        margin: 1rem 0;
     }
     
-    /* Custom metric container - White */
-    [data-testid="stMetric"] {
-        background-color: white;
-        border: 1px solid #2E2E2E;
-        padding: 15px;
-        border-radius: 8px;
-    }
-    
-    /* Metric value styling */
-    [data-testid="stMetricValue"] {
-        color: #32174D !important;
-    }
-    
-    /* Metric label styling */
-    [data-testid="stMetricLabel"] {
-        color: #2E2E2E !important;
-    }
-    
-    /* DataFrame table - White background */
-    [data-testid="stDataFrame"] {
-        background-color: white;
-        border-radius: 8px;
+    /* Tracker container */
+    .tracker-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 1rem;
     }
     
     /* Progress bar */
     .stProgress > div > div > div > div {
-        background-color: #2D5016;
+        background-color: #2e7d32;
     }
     
-    /* Expanders */
-    .streamlit-expanderHeader {
-        background-color: #32174D;
-        color: #F4EFE2;
-    }
-    
-    /* Divider */
-    hr {
-        border-color: #32174D;
+    /* Footer */
+    .app-footer {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #757575;
+        font-size: 0.85rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -430,9 +451,9 @@ def display_optimal_ranges(club: str):
         st.markdown(f"""
         <div style="text-align: center; padding: 15px; 
                     background-color: white; 
-                    border: 1px solid #2E2E2E;
-                    color: #2E2E2E; border-radius: 8px;">
-            <strong style="color: #32174D;">Ball Speed</strong><br>
+                    border: 1px solid #ccc;
+                    color: #1a1a1a; border-radius: 8px;">
+            <strong style="color: #1b5e20;">Ball Speed</strong><br>
             {optimal['ball_speed'][0]}-{optimal['ball_speed'][1]} mph
         </div>
         """, unsafe_allow_html=True)
@@ -441,9 +462,9 @@ def display_optimal_ranges(club: str):
         st.markdown(f"""
         <div style="text-align: center; padding: 15px; 
                     background-color: white; 
-                    border: 1px solid #2E2E2E;
-                    color: #2E2E2E; border-radius: 8px;">
-            <strong style="color: #32174D;">Launch Angle</strong><br>
+                    border: 1px solid #ccc;
+                    color: #1a1a1a; border-radius: 8px;">
+            <strong style="color: #1b5e20;">Launch Angle</strong><br>
             {optimal['launch_angle'][0]}-{optimal['launch_angle'][1]}°
         </div>
         """, unsafe_allow_html=True)
@@ -452,9 +473,9 @@ def display_optimal_ranges(club: str):
         st.markdown(f"""
         <div style="text-align: center; padding: 15px; 
                     background-color: white; 
-                    border: 1px solid #2E2E2E;
-                    color: #2E2E2E; border-radius: 8px;">
-            <strong style="color: #32174D;">Spin Rate</strong><br>
+                    border: 1px solid #ccc;
+                    color: #1a1a1a; border-radius: 8px;">
+            <strong style="color: #1b5e20;">Spin Rate</strong><br>
             {optimal['spin_rate'][0]}-{optimal['spin_rate'][1]} RPM
         </div>
         """, unsafe_allow_html=True)
@@ -463,9 +484,9 @@ def display_optimal_ranges(club: str):
         st.markdown(f"""
         <div style="text-align: center; padding: 15px; 
                     background-color: white; 
-                    border: 1px solid #2E2E2E;
-                    color: #2E2E2E; border-radius: 8px;">
-            <strong style="color: #32174D;">Smash Factor</strong><br>
+                    border: 1px solid #ccc;
+                    color: #1a1a1a; border-radius: 8px;">
+            <strong style="color: #1b5e20;">Smash Factor</strong><br>
             {optimal['smash_factor'][0]}-{optimal['smash_factor'][1]}
         </div>
         """, unsafe_allow_html=True)
@@ -642,15 +663,18 @@ def main():
     
     # Title and header
     st.markdown("""
-    <div style="text-align: center; padding: 20px;">
-        <h1>⛳ Trackman Iron Optimizer</h1>
-        <p style="color: #2D5016; font-size: 18px;">
+    <div style="text-align: center; padding: 2rem 1rem 1.5rem; background: #1b5e20; color: #fff;">
+        <h1 style="color: #fff; font-size: 2rem;">⛳ Trackman Iron Optimizer</h1>
+        <p style="font-size: 1rem; opacity: 0.85; margin-top: 0.25rem;">
             Optimize your iron shots with data-driven recommendations
         </p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("---")
+    # Main container
+    st.markdown('<div class="tracker-container">', unsafe_allow_html=True)
+    
+    st.markdown("""<hr>""", unsafe_allow_html=True)
     
     # Sidebar - Club Selection
     with st.sidebar:
@@ -797,21 +821,21 @@ def main():
     
     with score_col1:
         if optimization_score >= 80:
-            score_color = COLORS['success_green']
+            score_color = "#2e7d32"
             score_message = "Excellent!"
         elif optimization_score >= 60:
-            score_color = COLORS['gold_light']
+            score_color = "#C6A75E"
             score_message = "Good"
         else:
-            score_color = COLORS['weakness_red']
+            score_color = "#c62828"
             score_message = "Needs Work"
         
         st.markdown(f"""
         <div style="text-align: center; padding: 20px; 
-                    background-color: #32174D; 
-                    border-radius: 10px;">
+                    background-color: #fff; 
+                    border-radius: 10px; border: 2px solid {score_color};">
             <h2 style="color: {score_color}; margin: 0;">{optimization_score:.0f}%</h2>
-            <p style="color: #F4EFE2; margin: 0;">{score_message}</p>
+            <p style="color: #1a1a1a; margin: 0;">{score_message}</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -819,7 +843,7 @@ def main():
         progress_bar = st.progress(optimization_score / 100)
         st.write(f"**{success_count} of {total_checks} metrics in optimal range**")
     
-    st.markdown("---")
+    st.markdown("""<hr>""", unsafe_allow_html=True)
     
     # Recommendations section
     st.markdown("### 💡 Optimization Recommendations")
@@ -840,24 +864,26 @@ def main():
             """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div class="info-box" style="text-align: center;">
-            <h3 style="color: #F4EFE2;">🎉 Great shot!</h3>
-            <p style="color: #F4EFE2;">All metrics are within optimal ranges for the {selected_club}. 
+        <div style="text-align: center; padding: 1.5rem; 
+                    background-color: #fff; border-radius: 8px; 
+                    border: 2px solid #2e7d32; margin: 1rem 0;">
+            <h3 style="color: #1b5e20;">🎉 Great shot!</h3>
+            <p style="color: #1a1a1a;">All metrics are within optimal ranges for the {selected_club}. 
             Keep doing what you're doing!</p>
         </div>
         """, unsafe_allow_html=True)
     
     # Quick tips section
-    st.markdown("---")
+    st.markdown("""<hr>""", unsafe_allow_html=True)
     st.markdown("### 💪 Quick Tips for Iron Play")
     
     tip_col1, tip_col2, tip_col3 = st.columns(3)
     
     with tip_col1:
         st.markdown(f"""
-        <div style="padding: 15px; background-color: #32174D; 
-                    color: #F4EFE2; border-radius: 8px;">
-            <strong style="color: #C6A75E;">🎯 Launch Angle</strong><br>
+        <div style="padding: 15px; background-color: #fff; 
+                    color: #1a1a1a; border-radius: 8px; border-left: 4px solid #1b5e20;">
+            <strong style="color: #1b5e20;">🎯 Launch Angle</strong><br>
             <small>For better green holding: 
             Increase launch angle for longer irons, 
             decrease for scoring irons.</small>
@@ -866,9 +892,9 @@ def main():
     
     with tip_col2:
         st.markdown(f"""
-        <div style="padding: 15px; background-color: #2D5016; 
-                    color: #F4EFE2; border-radius: 8px;">
-            <strong style="color: #C6A75E;">🌀 Spin Rate</strong><br>
+        <div style="padding: 15px; background-color: #fff; 
+                    color: #1a1a1a; border-radius: 8px; border-left: 4px solid #2e7d32;">
+            <strong style="color: #1b5e20;">🌀 Spin Rate</strong><br>
             <small>Too much spin = loss of distance. 
             Too little = ball doesn't stop. 
             Find the balance for your clubs.</small>
@@ -877,9 +903,9 @@ def main():
     
     with tip_col3:
         st.markdown(f"""
-        <div style="padding: 15px; background-color: #B8956E; 
-                    color: #2E2E2E; border-radius: 8px;">
-            <strong style="color: #32174D;">⚡ Smash Factor</strong><br>
+        <div style="padding: 15px; background-color: #fff; 
+                    color: #1a1a1a; border-radius: 8px; border-left: 4px solid #C6A75E;">
+            <strong style="color: #1b5e20;">⚡ Smash Factor</strong><br>
             <small>Focus on center face contact. 
             A miss just 1/4 inch off center 
             can cost 2-3 mph ball speed.</small>
@@ -887,9 +913,11 @@ def main():
         """, unsafe_allow_html=True)
     
     # Footer
-    st.markdown("---")
+    st.markdown('</div>', unsafe_allow_html=True)  # Close tracker-container
+    
+    st.markdown("""<hr>""", unsafe_allow_html=True)
     st.markdown(f"""
-    <div style="text-align: center; color: #2E2E2E; font-size: 12px;">
+    <div class="app-footer">
         <p>Based on Titleist T-100 iron specifications and Trackman optimization principles</p>
         <p>Optimize your game with data-driven insights</p>
     </div>
