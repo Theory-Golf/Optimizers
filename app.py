@@ -15,6 +15,7 @@ Color Palette:
 import streamlit as st
 import pandas as pd
 from typing import Optional
+import altair as alt
 
 # ============================================================================
 # CONFIGURATION & CONSTANTS
@@ -471,11 +472,9 @@ def display_optimal_ranges(club: str):
 
 
 def create_metric_chart(metric_name: str, user_value: float, optimal_range: tuple, 
-                       unit: str, max_value: Optional[float] = None) -> str:
+                       unit: str, max_value: Optional[float] = None) -> None:
     """
-    Create a vertical bar chart showing optimal range and user value.
-    
-    Returns HTML string for the chart.
+    Create a vertical bar chart showing optimal range and user value using Altair.
     """
     low, high = optimal_range
     
@@ -485,11 +484,6 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
             max_value = high * 1.3
         else:
             max_value = high * 1.2
-    
-    # Calculate positions (normalized to 0-100)
-    optimal_start = (low / max_value) * 100
-    optimal_end = (high / max_value) * 100
-    user_position = (user_value / max_value) * 100
     
     # Determine status and colors
     if low <= user_value <= high:
@@ -502,110 +496,129 @@ def create_metric_chart(metric_name: str, user_value: float, optimal_range: tupl
         status_color = "#B4413D"  # Weakness Red
         status_text = "⬆ Above"
     
-    # Create chart HTML (without comments to avoid escaping issues)
-    chart_html = f"""
-    <div style="padding: 15px; background-color: white; border-radius: 8px; margin: 10px 0;">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <strong style="color: #32174D; font-size: 16px;">{metric_name}</strong>
+    # Create data for the chart
+    # Background bar (0 to max)
+    data = pd.DataFrame({
+        'value': [0, max_value],
+        'label': ['Start', 'End']
+    })
+    
+    # Optimal range rectangle
+    opt_data = pd.DataFrame({
+        'xmin': [0],
+        'xmax': [high],
+        'ymin': [0],
+        'ymax': [1]
+    })
+    
+    # Main chart - horizontal bar showing range
+    base = alt.Chart(pd.DataFrame({
+        'position': [0.5],
+        'value': [max_value]
+    })).encode(
+        y=alt.Y('position:O', axis=None)
+    ).properties(height=50)
+    
+    # Background bar
+    bar = base.mark_bar(color='#F5F5F5', cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+        x=alt.X('value:Q', scale=alt.Scale(domain=[0, max_value]), axis=None)
+    )
+    
+    # Optimal range highlight
+    opt_range = alt.Chart(pd.DataFrame({
+        'start': [low],
+        'end': [high]
+    })).encode(
+        x='start:Q',
+        x2='end:Q'
+    ).mark_rect(color='#2D5016', opacity=0.25)
+    
+    # User value marker line
+    user_line = alt.Chart(pd.DataFrame({
+        'x': [user_value]
+    })).encode(
+        x='x:Q'
+    ).mark_rule(color=status_color, strokeWidth=3)
+    
+    # User value dot
+    user_dot = alt.Chart(pd.DataFrame({
+        'x': [user_value],
+        'y': [0.5]
+    })).encode(
+        x='x:Q',
+        y='y:Q'
+    ).mark_point(color=status_color, size=100, shape='triangle-up', filled=True)
+    
+    # Combine all
+    chart = (bar + opt_range + user_line + user_dot).properties(
+        width=400,
+        height=60
+    )
+    
+    # Display chart
+    st.altair_chart(chart, use_container_width=True)
+    
+    # Show values below chart
+    col_left, col_right = st.columns([1, 1])
+    with col_left:
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <span style="color: #2D5016; font-weight: bold;">Optimal Range</span><br>
+            <span style="font-size: 14px;">{low}-{high}{unit}</span>
         </div>
-        
-        <div style="position: relative; height: 80px; background-color: #F5F5F5; 
-                    border-radius: 4px; border: 1px solid #2E2E2E;">
-            
-            <div style="position: absolute; left: {optimal_start}%; 
-                        width: {optimal_end - optimal_start}%; top: 0; 
-                        height: 100%; background-color: rgba(46, 80, 22, 0.25);
-                        border-left: 2px solid #2D5016; border-right: 2px solid #2D5016;">
-                <div style="position: absolute; bottom: 2px; left: 50%; 
-                            transform: translateX(-50%); font-size: 9px; 
-                            color: #2D5016; white-space: nowrap;">
-                    Optimal: {low}-{high}{unit}
-                </div>
-            </div>
-            
-            <div style="position: absolute; left: {user_position}%; top: 50%;
-                        transform: translate(-50%, -50%); z-index: 10;">
-                <div style="width: 4px; height: 60px; background-color: {status_color};
-                            border-radius: 2px; margin: 0 auto;"></div>
-                <div style="width: 0; height: 0; border-left: 8px solid transparent;
-                            border-right: 8px solid transparent;
-                            border-top: 10px solid {status_color};
-                            margin: 0 auto;"></div>
-            </div>
-            
-            <div style="position: absolute; left: {user_position}%; 
-                        top: 5px; transform: translateX(-50%); z-index: 15;">
-                <div style="background-color: {status_color}; color: white; 
-                            padding: 2px 8px; border-radius: 4px; 
-                            font-size: 12px; font-weight: bold; white-space: nowrap;">
-                    You: {user_value:.1f}{unit}
-                </div>
-            </div>
+        """, unsafe_allow_html=True)
+    with col_right:
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <span style="color: {status_color}; font-weight: bold;">Your Value</span><br>
+            <span style="font-size: 14px;">{user_value:.1f}{unit} - {status_text}</span>
         </div>
-        
-        <div style="text-align: center; margin-top: 8px;">
-            <span style="color: {status_color}; font-weight: bold; font-size: 14px;">
-                {status_text}
-            </span>
-        </div>
-    </div>
-    """
-    return chart_html
+        """, unsafe_allow_html=True)
 
 
 def display_shot_comparison_charts(metrics: dict, optimal: dict):
     """Display vertical bar charts for all metrics."""
     st.markdown("### 📊 Your Shot vs Optimal")
     
-    # Create columns for charts
-    col1, col2 = st.columns(2)
+    # Ball Speed
+    st.markdown(f"""<div style="background-color: white; padding: 15px; 
+                border-radius: 8px; margin: 10px 0; border: 1px solid #2E2E2E;">
+        <strong style="color: #32174D; font-size: 16px;">Ball Speed</strong>
+        </div>""", unsafe_allow_html=True)
+    create_metric_chart("Ball Speed", metrics['ball_speed'], optimal['ball_speed'],
+                       " mph", max_value=optimal['ball_speed'][1] * 1.4)
     
-    with col1:
-        # Ball Speed
-        st.markdown(create_metric_chart(
-            "Ball Speed",
-            metrics['ball_speed'],
-            optimal['ball_speed'],
-            " mph",
-            max_value=optimal['ball_speed'][1] * 1.4
-        ), unsafe_allow_html=True)
-        
-        # Launch Angle
-        st.markdown(create_metric_chart(
-            "Launch Angle",
-            metrics['launch_angle'],
-            optimal['launch_angle'],
-            "°",
-            max_value=optimal['launch_angle'][1] * 1.3
-        ), unsafe_allow_html=True)
-        
-        # Smash Factor
-        st.markdown(create_metric_chart(
-            "Smash Factor",
-            metrics['smash_factor'],
-            optimal['smash_factor'],
-            "",
-            max_value=optimal['smash_factor'][1] * 1.15
-        ), unsafe_allow_html=True)
+    # Launch Angle
+    st.markdown(f"""<div style="background-color: white; padding: 15px; 
+                border-radius: 8px; margin: 10px 0; border: 1px solid #2E2E2E;">
+        <strong style="color: #32174D; font-size: 16px;">Launch Angle</strong>
+        </div>""", unsafe_allow_html=True)
+    create_metric_chart("Launch Angle", metrics['launch_angle'], optimal['launch_angle'],
+                       "°", max_value=optimal['launch_angle'][1] * 1.3)
     
-    with col2:
-        # Spin Rate
-        st.markdown(create_metric_chart(
-            "Spin Rate",
-            metrics['spin_rate'],
-            optimal['spin_rate'],
-            " RPM",
-            max_value=optimal['spin_rate'][1] * 1.3
-        ), unsafe_allow_html=True)
-        
-        # Carry Distance
-        st.markdown(create_metric_chart(
-            "Carry Distance",
-            metrics['carry_distance'],
-            optimal['carry_distance'],
-            " yds",
-            max_value=optimal['carry_distance'][1] * 1.3
-        ), unsafe_allow_html=True)
+    # Smash Factor
+    st.markdown(f"""<div style="background-color: white; padding: 15px; 
+                border-radius: 8px; margin: 10px 0; border: 1px solid #2E2E2E;">
+        <strong style="color: #32174D; font-size: 16px;">Smash Factor</strong>
+        </div>""", unsafe_allow_html=True)
+    create_metric_chart("Smash Factor", metrics['smash_factor'], optimal['smash_factor'],
+                       "", max_value=optimal['smash_factor'][1] * 1.15)
+    
+    # Spin Rate
+    st.markdown(f"""<div style="background-color: white; padding: 15px; 
+                border-radius: 8px; margin: 10px 0; border: 1px solid #2E2E2E;">
+        <strong style="color: #32174D; font-size: 16px;">Spin Rate</strong>
+        </div>""", unsafe_allow_html=True)
+    create_metric_chart("Spin Rate", metrics['spin_rate'], optimal['spin_rate'],
+                       " RPM", max_value=optimal['spin_rate'][1] * 1.3)
+    
+    # Carry Distance
+    st.markdown(f"""<div style="background-color: white; padding: 15px; 
+                border-radius: 8px; margin: 10px 0; border: 1px solid #2E2E2E;">
+        <strong style="color: #32174D; font-size: 16px;">Carry Distance</strong>
+        </div>""", unsafe_allow_html=True)
+    create_metric_chart("Carry Distance", metrics['carry_distance'], optimal['carry_distance'],
+                       " yds", max_value=optimal['carry_distance'][1] * 1.3)
     
     # Legend
     st.markdown("""
